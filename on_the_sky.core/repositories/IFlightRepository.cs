@@ -1,0 +1,13 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace on_the_sky.core.repositories
+{
+    public interface IFlightRepository
+    {
+        public List <Flight> GetAll();
+    }
+}
