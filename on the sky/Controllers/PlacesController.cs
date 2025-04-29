@@ -1,4 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using on_the_sky.core.Dto;
+using on_the_sky.core.services;
+using on_the_sky.models;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -6,64 +11,78 @@ namespace on_the_sky.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "manager")]
     public class PlacesController : ControllerBase
     {
-        //public static List<Places> fplaces = new List<Places> {
-        //        new Places { country= "israel" ,countryid= 111  },
-        //        new Places  { country= "usa" ,countryid= 112  },
-        //        new Places { country= "la" ,countryid= 113  }
+        private readonly IplaceService _Placeservice ;
+       private readonly IMapper _Mapper ;
 
-        //};
-        public readonly Datacontext _context;
-
-
-        public PlacesController(Datacontext context)
+        public PlacesController(IplaceService Placeservice, IMapper map )
         {
-            _context = context;
+            _Placeservice = Placeservice;
+            _Mapper=map;
         }
 
 
 
         // GET: api/<TravelsController>
         [HttpGet]
-        public IEnumerable<Places> Get()
+        [AllowAnonymous]
+        public async Task<ActionResult> Get()
         {
-            return _context.PlacesDB;
+            var placeList = await _Placeservice.GetAll();
+            var places=_Mapper.Map<IEnumerable<PlaceDto>>(placeList);
+            return Ok(places);
+         
         }
 
         // GET api/<TravelsController>/5
         [HttpGet("{id}")]
-        public string Get(int id)
+        public async Task<ActionResult> GetById(int id)
         {
-            return "value";
+            var pla = await _Placeservice.GetById(id);
+            var place= _Mapper.Map<PlaceDto>(pla);
+            if (pla != null)
+            {
+                return Ok(place);
+            }
+            return NotFound();
         }
 
 
         // POST api/<TravelsController>
         [HttpPost]
-        public Places Post([FromBody] Places value)
+        public async Task<ActionResult> Post([FromBody] PlacesPostModel p)
         {
-            _context.PlacesDB.Add(value);
-            return value;
+            var newplace = _Mapper.Map<Places>(p);
+            await _Placeservice.ADD(newplace);
+            return Ok();
         }
 
         // PUT api/<TravelsController>/5
         [HttpPut("{id}")]
-        public Places Put(int id, [FromBody] Places value)
+        public async Task<ActionResult> Put(int id, [FromBody] PlacesPostModel p)
         {
-            var index = _context.PlacesDB.FindIndex(e => e.countryid== id);
-            _context.PlacesDB[index].countryid = value.countryid;
-            _context.PlacesDB[index].country = value.country;
-
-            return _context.PlacesDB[index];                                  // עדכון אובייקט
+          
+            var place = await _Placeservice.Put(id, _Mapper.Map<Places>(p));
+            if (place != null)
+            {
+                return Ok(place);
+            }
+            return NotFound();                                 // עדכון אובייקט
         }
 
         // DELETE api/<TravelsController>/5
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public async Task<ActionResult> Delete(int id)
         {
-            var index = _context.PlacesDB.FindIndex(e => e.countryid== id);
-            _context.PlacesDB.Remove(_context.PlacesDB[index]);                          //מחיקת אובייקט
+            var place = await _Placeservice.Delete(id);
+            if (place != null)
+            {
+                return Ok();
+            }
+            return NotFound();
+            //מחיקת אובייקט
         }
     }
 }

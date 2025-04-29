@@ -8,6 +8,10 @@ namespace on_the_sky.core.repositories
 {
     public interface IFlightRepository
     {
-        public List <Flight> GetAll();
+        public Task<List<Flight>> GetAll();
+        public Task<Flight> GetById(int id);
+        public Task ADD_flight(Flight f);
+        public Task<Flight> Put(int id, Flight value);
+        public Task<Flight> Delete(int id);
     }
 }

@@ -1,4 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using on_the_sky.core.Dto;
+using on_the_sky.core.services;
+using on_the_sky.models;
 using on_the_sky.service;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -7,59 +12,78 @@ namespace on_the_sky.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "manager")]
     public class FlightController : ControllerBase
     {
-        private readonly IFlightServicecs _flightservice ;
+        private readonly IFlightService _flightservice ;
+        private readonly IMapper _mapper;
 
 
-        public FlightController(IFlightServicecs flightservice)
+        public FlightController(IFlightService flightservice, IMapper map)
         {
             _flightservice = flightservice;
+            _mapper = map;
         }
 
         // GET: api/<TravelsController>
         [HttpGet]
-        public IEnumerable<Flight> Get()
+        [AllowAnonymous]
+        public async Task<ActionResult> Get()
         {
-            return _flightservice.Getlist();
+            var FlightList = await _flightservice.Getlist();
+            var Flights= _mapper.Map<IEnumerable<FlightDto>>(FlightList);
+            return Ok( Flights);
         }
 
         // GET api/<TravelsController>/5
         [HttpGet("{id}")]
-        public string Get(int id)
+        public async Task<ActionResult> GetById(int id)
         {
-            return "value";
+            var fly = await _flightservice.GetById(id);
+            var Flight= _mapper.Map<FlightDto>(fly);
+            if (fly != null) { 
+                return Ok(Flight);
+            }
+            return NotFound() ;
         }
 
 
         // POST api/<TravelsController>
         [HttpPost]
-        public Flight Post([FromBody] Flight value)
+        public async Task<ActionResult> Post([FromBody] FlightPostModel f)
         {
-            _flightservice.Getlist().Add(value);
-            return value;
+            var newfly = _mapper.Map<Flight>(f);
+            await _flightservice.ADD(newfly);
+
+            return Ok();
         }
+
+
 
         // PUT api/<TravelsController>/5
         [HttpPut("{id}")]
-        public Flight Put(int id, [FromBody] Flight value)
+        public async Task<ActionResult> Put(int id, [FromBody] FlightPostModel f)
         {
-            var index = _flightservice.Getlist().FindIndex(e => e.flightid == id);
-            _flightservice.Getlist()[index].countryid = value.countryid;
-            _flightservice.Getlist()[index].flightid = value.flightid;
-            _flightservice.Getlist()[index].flighttime = value.flighttime;
-            _flightservice.Getlist()[index].Maximum = value.Maximum;
-            _flightservice.Getlist()[index].amount = value.amount;
-            return _flightservice.Getlist()[index];                                  // עדכון אובייקט
+            //    var newfly = new Flight { flighttime = f.flighttime, countryID = f.countryID, Maximum = f.Maximum, amount = f.amount };
+            var fly = await _flightservice.Put(id , _mapper.Map<Flight>(f));
+            if (fly != null)
+            {
+                return Ok(fly);
+            }
+            return NotFound();                        
         }
 
         // DELETE api/<TravelsController>/5
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public async Task<ActionResult> Delete(int id)
         {
+            var fly= await _flightservice.Delete(id);
+            if (fly != null)
+            {
+                return Ok();
+            }
+            return NotFound();
 
-            var index = _flightservice.Getlist().FindIndex(e => e.flightid == id);
-            _flightservice.Getlist().Remove(_flightservice.Getlist()[index]);                          //מחיקת אובייקט
         }
 }
 }

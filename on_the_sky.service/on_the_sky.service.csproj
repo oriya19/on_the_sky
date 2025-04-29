@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\on_the_sky.core\on_the_sky.core.csproj" />
+    <ProjectReference Include="..\on_the_sky.Data\on_the_sky.Data.csproj" />
   </ItemGroup>
 
 </Project>

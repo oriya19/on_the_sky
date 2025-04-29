@@ -15,10 +15,25 @@ namespace on_the_sky.service
         {
             _Flightrepositories = flightrepositories;
         }
-        public List<Flight> Getlist()
+        public async Task<List<Flight>> Getlist()
         {
-            return _Flightrepositories.GetAll();
+            return await _Flightrepositories.GetAll();
 
+        }
+        public async Task<Flight> GetById(int id) {
+            return await _Flightrepositories.GetById(id);
+        }
+        public async Task ADD(Flight f) {
+           await _Flightrepositories.ADD_flight(f);
+        }
+        public async Task<Flight> Put(int id, Flight value)
+        {
+          return await _Flightrepositories.Put( id, value);
+        
+        }
+        public async Task<Flight>  Delete(int id)
+        {
+            return await _Flightrepositories.Delete( id);
         }
     }
 }
